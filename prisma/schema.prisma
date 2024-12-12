@@ -1,0 +1,24 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "mongodb"
+  url      = env("DATABASE_URL")
+}
+
+/// This model or at least one of its fields has comments in the database
+model Words {
+  id          String  @id @default(auto()) @map("_id") @db.ObjectId
+  text        String
+  source      String?
+  GameTurns GameTurns[]
+}
+
+model GameTurns {
+  id          String  @id @default(auto()) @map("_id") @db.ObjectId
+  wordId      String @db.ObjectId
+  wordLetters String[]
+  createdAt   DateTime
+  word        Words   @relation(fields: [wordId], references: [id])
+}
