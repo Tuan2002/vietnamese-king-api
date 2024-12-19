@@ -12,7 +12,9 @@ model Words {
   id          String  @id @default(auto()) @map("_id") @db.ObjectId
   text        String
   source      String?
+  letterCount Int
   GameTurns GameTurns[]
+  Challenges Challenges[]
 }
 
 model GameTurns {
@@ -20,5 +22,17 @@ model GameTurns {
   wordId      String @db.ObjectId
   wordLetters String[]
   createdAt   DateTime
+  word        Words   @relation(fields: [wordId], references: [id])
+}
+
+model Challenges {
+  id          String  @id @default(auto()) @map("_id") @db.ObjectId
+  wordId      String @db.ObjectId
+  userId      String
+  wordLetters String[]
+  createdAt   DateTime
+  isCorrect   Boolean
+  completedAt DateTime?
+  level       Int @default(1)
   word        Words   @relation(fields: [wordId], references: [id])
 }

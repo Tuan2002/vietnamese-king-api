@@ -1,6 +1,8 @@
+import logger from '@/helpers/logger';
+import IJwtService from "@/interfaces/IJwtService";
 import 'dotenv/config';
 import jwt from 'jsonwebtoken';
-import IJwtService from "@/interfaces/IJwtService";
+import jwksClient from 'jwks-rsa';
 import ms from 'ms';
 
 class JwtService implements IJwtService {
@@ -41,6 +43,11 @@ class JwtService implements IJwtService {
     getTokenPayload(token: string): any {
         return jwt.decode(token);
     }
+
+    getTokenHeader(token: string): any {
+        const tokenHeader = jwt.decode(token, { complete: true })?.header;
+        return tokenHeader;
+    }
     generateRefreshToken(payload: any): TokenResponse {
         const refreshToken = jwt.sign(payload, this.refreshTokenSecret, { expiresIn: this.refreshTokenLife, algorithm: 'HS256' });
         const expiresAt = new Date(Date.now() + ms(this.refreshTokenLife));
@@ -60,5 +67,31 @@ class JwtService implements IJwtService {
             return false;
         }
     }
+
+    async verifyOAuthToken(token: string): Promise<boolean> {
+        try {
+            const client = jwksClient({
+                jwksUri: `${process.env.CLERK_API_URL}/V1/jwks`,
+                requestHeaders: {
+                    Authorization: `Bearer ${process.env.CLERK_SECRET_KEY}`
+                },
+            });
+            const tokenHeader = this.getTokenHeader(token);
+            if (!tokenHeader || !tokenHeader.kid) {
+                return false;
+            }
+            const key = await client.getSigningKey(tokenHeader.kid);
+            const signingKey = key.getPublicKey();
+            jwt.verify(token, signingKey, {algorithms: ["RS256"]});
+            return true;
+        }
+        catch (error) {
+            logger.error(error);
+            return false;
+        }
+    }
+
+
+
 }
 export default JwtService;

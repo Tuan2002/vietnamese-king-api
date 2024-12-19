@@ -6,6 +6,7 @@ import { checkGameLetters, shuffleLetter } from '@/utils/handleWord';
 import { IGameService } from '@interfaces/IGameService';
 import { plainToInstance } from 'class-transformer';
 import { StatusCodes } from 'http-status-codes';
+import { isValidObjectId } from 'mongoose';
 
 class GameService implements IGameService {
 
@@ -47,6 +48,13 @@ class GameService implements IGameService {
     }
     public async getGameByIdAsync(gameId: string): Promise<ServiceResponse> {
         try {
+            if (!isValidObjectId(gameId)) {
+                return {
+                    statusCode: StatusCodes.NOT_FOUND,
+                    isSuccess: false,
+                    errorMessage: 'Invalid gameId'
+                };
+            }
             const game = await this._context.gameTurns.findUnique({
                 where: {
                     id: gameId
