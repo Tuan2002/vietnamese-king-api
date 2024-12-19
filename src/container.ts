@@ -1,8 +1,7 @@
 import {
     GameService,
     JwtService,
-    PrismaService,
-    RedisService
+    PrismaService
 } from "@/services";
 import { asClass, createContainer, InjectionMode } from "awilix";
 import "dotenv/config";
@@ -15,10 +14,10 @@ container.register({
     // Register the Services
     PrismaService: process.env.NODE_ENV === Environments.PRODUCTION
         ? asClass(PrismaService).scoped() : asClass(PrismaService).singleton(),
-    RedisService: asClass(RedisService).singleton(),
+    // RedisService: asClass(RedisService).singleton(),
     JwtService: asClass(JwtService).singleton(),
     GameService: asClass(GameService).scoped()
 });
-container.resolve("RedisService");
+// container.resolve("RedisService");
 export default container
 
