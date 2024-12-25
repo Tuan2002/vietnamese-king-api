@@ -1,4 +1,5 @@
 import { Expose } from "class-transformer";
+import { GameDto } from "./GameDto";
 
 
 export type GameLetterDto = {
@@ -13,4 +14,6 @@ export class GameResultDto {
     public isCorrect: boolean;
     @Expose()
     public letters?: GameLetterDto[];
+    @Expose()
+    public newGame?: GameDto;
 }

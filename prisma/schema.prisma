@@ -31,7 +31,7 @@ model Challenges {
   userId      String
   wordLetters String[]
   createdAt   DateTime
-  isCorrect   Boolean
+  isCorrect   Boolean @default(false)
   completedAt DateTime?
   level       Int @default(1)
   word        Words   @relation(fields: [wordId], references: [id])

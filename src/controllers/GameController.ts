@@ -1,5 +1,6 @@
 import { IGameService } from "@/interfaces/IGameService";
 import { validationMiddleware } from "@/middlewares";
+import authenticateMiddleware from "@/middlewares/AuthenticateMiddleware";
 import { GameSubmitDto } from "@/models/games/GameSubmitDto";
 import { before, GET, POST, route } from "awilix-express";
 import { Request, Response } from "express";
@@ -111,6 +112,73 @@ export class GameController {
     @route("/submit-game")
     public async submitGameTurn(req: Request, res: Response) {
         const response = await this._gameService.submitGameTurnAsync(req.body);
+        return res.status(response.statusCode).json(response);
+    }
+
+    /**
+     * @swagger
+     * "/games/current-challenge":
+     *   post:
+     *     tags:
+     *       - "Game"
+     *     summary: "Get current challenge"
+     *     description: "Get current challenge"
+     *     produces:
+     *       - "application/json"
+     *     responses:
+     *       200:
+     *         description: "Current challenge found"
+     *         content:
+     *           application/json:
+     *            schema:
+     *             $ref: "#/components/schemas/GameDto"
+     *       404:
+     *         description: "Current challenge not found"
+     *       500:
+     *         description: "Internal Server Error"
+     */
+
+    @POST()
+    @before([authenticateMiddleware()])
+    @route("/current-challenge")
+    public async getCurrentChallenge(req: Request, res: Response) {
+        const response = await this._gameService.getCurrentChallengeAsync();
+        return res.status(response.statusCode).json(response);
+    }
+
+    /**
+     * @swagger
+     * "/games/submit-challenge":
+     *   post:
+     *     tags:
+     *       - "Game"
+     *     summary: "Submit challenge"
+     *     description: "Submit challenge"
+     *     produces:
+     *       - "application/json"
+     *     requestBody:
+     *       content:
+     *         application/json:
+     *           schema:
+     *             $ref: "#/components/schemas/GameSubmitDto"
+     *     responses:
+     *       200:
+     *         description: "Challenge submitted successfully"
+     *         content:
+     *           application/json:
+     *            schema:
+     *             $ref: "#/components/schemas/GameDto"
+     *       404:
+     *         description: "Challenge not found"
+     *       500:
+     *         description: "Internal Server Error"
+     */
+    @POST()
+    @before([authenticateMiddleware()])
+    @before(validationMiddleware(GameSubmitDto))
+    @route("/submit-challenge")
+    public async submitChallenge(req: Request, res: Response) {
+        const response = await this._gameService.submitChallengeAsync(req.body);
         return res.status(response.statusCode).json(response);
     }
 }

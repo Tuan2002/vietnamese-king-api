@@ -5,7 +5,7 @@ const swaggerSpecs = {
     definition: {
         openapi: "3.1.0",
         info: {
-            title: "Mezon Treasury API",
+            title: "Vietnamese King API",
             version: "1.0.0",
             description:
                 "Vietnamese King API is a RESTful API for Vua Tiếng Việt Game",

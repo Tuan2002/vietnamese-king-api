@@ -15,6 +15,9 @@ import { Expose } from 'class-transformer';
  *       "wordId": {
  *         "type": "string"
  *       },
+ *      "level": {
+ *         "type": "number"
+ *      },
  *      "wordLetters": {
  *         "type": "array",
  *        "items": {
@@ -36,6 +39,8 @@ export class GameDto {
     public id: string;
     @Expose()
     public wordId: string;
+    @Expose()
+    public level?: number;
     @Expose()
     public wordLetters: string[];
     @Expose()
