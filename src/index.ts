@@ -1,10 +1,6 @@
 import 'module-alias/register';
 import Application from "./app";
-function bootstrap() {
-    const application = new Application();
-    application.init();
-    application.start();
-    return application;
-}
-const instance = bootstrap();
-export default instance;
+import container from './container';
+import { SocketGameService } from './services';
+container.resolve<Application>('Application')
+container.resolve<SocketGameService>('SocketGameService')
