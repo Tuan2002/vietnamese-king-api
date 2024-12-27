@@ -1,5 +1,6 @@
 import { options, specs } from "@/configs/swagger";
 import { asyncLocalStorageMiddleware } from "@/middlewares";
+import { instrument } from "@socket.io/admin-ui";
 import { loadControllers, scopePerRequest } from "awilix-express";
 import bodyParser from "body-parser";
 import cookieParser from "cookie-parser";
@@ -38,6 +39,9 @@ class Application {
       });
       this.socketServer = new SocketServer(this.serverInstance, {
         cors: corsConfig
+      });
+      instrument(this.socketServer, {
+        auth: false
       });
       this.server.app.use(cors(corsConfig));
       this.server.app.use(cookieParser());
