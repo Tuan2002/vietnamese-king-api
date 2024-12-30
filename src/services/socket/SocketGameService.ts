@@ -40,25 +40,28 @@ class SocketGameService implements ISocketGameService {
         const player = this.onlinePlayers.find((player) => player.socketId === socket.id);
         if (!player) return;
         this.onlinePlayers = this.onlinePlayers.filter((player) => player.socketId !== socket.id);
+        console.log("onlinePlayers", this.onlinePlayers);
         const game = this.Games.find((game) => game.players.some((player) => player.id === player.id));
         if (!game) return;
         game.players = game.players.filter((player) => player.id !== player.id);
         if (game.players.length === 0) {
             this.Games = this.Games.filter((game) => game.gameId !== game.gameId);
         }
-        const betterResult = game.gameResults.reduce((prev, current) =>
-            prev.correctWordIds.length > current.correctWordIds.length ? prev : current);
-        const winner = game.players.find((player) => player.id === betterResult.playerId);
-        const winnerSocket = this.socketServer.sockets.sockets.get(winner.socketId);
-        winnerSocket.emit(GameEvents.GAME_FINISH, {
-            gameId: game.gameId,
-            winner: winner,
-            message: `Đối thủ bỏ cuộc, ${winner.playerName} đã chiến thắng`
-        });
+        if (game.players.length === 1) {
+            const winner = game.players[0];
+            const winnerSocket = this.socketServer.sockets.sockets.get(winner.socketId);
+            winnerSocket.emit(GameEvents.GAME_FINISH, {
+                gameId: game.gameId,
+                winner: winner,
+                message: `Đối thủ bỏ cuộc, ${winner.playerName} đã chiến thắng`
+            });
+        }
     }
 
     private onPlayerJoin = (player: Player, socket: Socket) => {
-        this.onlinePlayers.push({ ...player, socketId: socket.id });
+        const existedPlayer = this.onlinePlayers.find((p) => p.id === player.id && p.socketId === socket.id);
+        if (existedPlayer) return;
+        this.onlinePlayers.push({ ...player, socketId: socket.id, isPending: false, isPlaying: false });
         console.log("onlinePlayers", this.onlinePlayers);
         socket.emit(GameEvents.PLAYER_JOIN, { ...player, socketId: socket.id });
     }
@@ -84,6 +87,17 @@ class SocketGameService implements ISocketGameService {
         // Send the game start event to the players with the first word
         this.socketServer.to(game.gameId).emit(GameEvents.GAME_STARTED, { gameId: game.gameId, wordId: game.words[0].id, wordLetters: firstWordLetters });
         setTimeout(() => {
+            // If all players has the same correctWordIds length, no one wins
+            if (game.gameResults.every((result) => result.correctWordIds.length === game.gameResults[0].correctWordIds.length)) {
+                this.socketServer.to(game.gameId).emit(GameEvents.GAME_TIME_END, {
+                    gameId: game.gameId,
+                    winner: null,
+                    message: "Trận đầu kết thức với kết quả hòa"
+                });
+                game.isPlaying = false;
+                return;
+            }
+            // Find the player who has the most correctWord
             const betterResult = game.gameResults.reduce((prev, current) =>
                 prev.correctWordIds.length > current.correctWordIds.length ? prev : current);
             const winner = game.players.find((player) => player.id === betterResult.playerId);
@@ -142,8 +156,8 @@ class SocketGameService implements ISocketGameService {
             // Check if player has completed all the words
             if (gameResult.correctWordIds.length === game.gameWordCount) {
                 game.isFinished = true;
-                this.socketServer.to(game.gameId).emit(GameEvents.GAME_FINISH, { 
-                    gameId: game.gameId, 
+                this.socketServer.to(game.gameId).emit(GameEvents.GAME_FINISH, {
+                    gameId: game.gameId,
                     winner: player,
                     message: `${player.playerName} đã chiến thắng`
                 });
