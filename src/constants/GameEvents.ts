@@ -11,6 +11,8 @@ export const GameEvents = {
     OPPONENT_FOUND: "opponentFound",
     WORD_SUBMIT: "gameSubmit",
     WORD_SUBMIT_RESULT: "wordSubmitResult",
+    CORRECT_WORD: "correctWord",
+    EXIT_GAME: "exitGame",
     SET_NEXT_WORD: "setNextWord",
     CONFIRM_GAME_RESULT: "confirmGameResult",
     GAME_ERROR: "gameError"
