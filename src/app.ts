@@ -6,7 +6,9 @@ import bodyParser from "body-parser";
 import cookieParser from "cookie-parser";
 import cors from 'cors';
 import 'dotenv/config';
+import fs from 'fs';
 import { createServer, Server, } from "http";
+import { createServer as createHttpsServer, Server as HttpsServer, } from "https";
 import { Server as SocketServer } from "socket.io";
 import swaggerUi from "swagger-ui-express";
 import { corsConfig } from "./configs/corsConfig";
@@ -20,7 +22,7 @@ import expressApp from "./server";
  */
 class Application {
   server: expressApp;
-  serverInstance: Server;
+  serverInstance: HttpsServer | Server;
   socketServer: SocketServer;
   constructor() {
     this.initServer();
@@ -34,8 +36,14 @@ class Application {
   }
   start() {
     ((port = process.env.APP_PORT || 5001) => {
-      this.serverInstance = createServer(this.server.app).listen(port, () => {
-        console.log(`Server running at http://localhost:${port}`);
+      this.serverInstance = process.env.NODE_ENV === Environments.PRODUCTION ?
+        createServer(this.server.app).listen(port, () => {
+          console.log(`Server running at http://localhost:${port}`);
+        }) : createHttpsServer({
+        key: fs.readFileSync(`${__dirname}/configs/ssl/api.vietnamese.local+3-key.pem`),
+        cert: fs.readFileSync(`${__dirname}/configs/ssl/api.vietnamese.local+3.pem`)
+      }, this.server.app).listen(port, () => {
+        console.log(`Server running at https://localhost:${port}`);
       });
       this.socketServer = new SocketServer(this.serverInstance, {
         cors: corsConfig
